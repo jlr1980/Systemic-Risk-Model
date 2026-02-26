@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systemic Risk Projection Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#090d12; --bg2:#0e1319; --bg3:#141a24; --surface:#182030;
+  --border:#1e2d40; --border2:#2a3d55; --text:#b8c8d8; --text2:#7a8fa0;
+  --text3:#4d6070; --white:#e4ecf4;
+  --teal:#0d9da0; --teal2:#12c4c8; --teal-d:rgba(13,157,160,0.12);
+  --red:#c44040; --red2:#e05555; --red-d:rgba(196,64,64,0.12);
+  --amber:#c49a40; --amber-d:rgba(196,154,64,0.12);
+  --green:#3a9e6e; --green-d:rgba(58,158,110,0.12);
+  --blue:#4080c4;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'DM Sans',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14.5px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh}
+
+.header{border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;background:var(--bg2)}
+.header-title{font-family:var(--serif);font-size:1.4rem;color:var(--white);letter-spacing:0.01em}
+.header-sub{font-size:0.7rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:0.15rem}
+.header-right{display:flex;gap:0.6rem;align-items:center}
+.badge{font-family:var(--mono);font-size:0.65rem;color:var(--teal);background:var(--teal-d);padding:0.2rem 0.5rem;border-radius:3px;border:1px solid rgba(13,157,160,0.25)}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 2rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:0.7rem 1rem;font-size:0.75rem;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;letter-spacing:0.03em}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--teal2);border-bottom-color:var(--teal)}
+
+.main{padding:1.5rem 2rem 3rem;max-width:1440px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+
+.stitle{font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.3rem}
+.ssub{font-size:0.82rem;color:var(--text2);margin-bottom:1.5rem;max-width:680px;line-height:1.7}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem}
+.gs{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem 2rem}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:1.1rem}
+.card-t{font-size:0.7rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.7rem}
+
+.sg{padding:0.35rem 0}
+.sl{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem}
+.sn{font-size:0.78rem;font-weight:500;color:var(--text)}
+.sv{font-family:var(--mono);font-size:0.78rem;font-weight:500;color:var(--teal2);min-width:3rem;text-align:right}
+.sv.neg{color:var(--green)}
+.sm{font-size:0.6rem;color:var(--text3);margin-bottom:0.15rem}
+input[type="range"]{-webkit-appearance:none;width:100%;height:3px;background:var(--border2);border-radius:2px;outline:none;cursor:pointer}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--teal);border-radius:50%;border:2px solid var(--bg);cursor:pointer}
+input[type="range"].stab::-webkit-slider-thumb{background:var(--green)}
+
+.btn{font-family:var(--sans);font-size:0.75rem;font-weight:600;padding:0.45rem 0.9rem;border-radius:4px;border:1px solid var(--border2);background:var(--surface);color:var(--text);cursor:pointer;transition:all 0.2s}
+.btn:hover{border-color:var(--teal);color:var(--teal2)}
+.btn.active{background:var(--teal-d);border-color:var(--teal);color:var(--teal2)}
+.btn-p{background:var(--teal);border-color:var(--teal);color:var(--bg)}.btn-p:hover{background:var(--teal2)}
+.bg{display:flex;gap:0.4rem;flex-wrap:wrap}
+
+.stat{text-align:center;padding:0.8rem}
+.stat-v{font-family:var(--mono);font-size:1.6rem;font-weight:700;color:var(--white);line-height:1.2}
+.stat-v.danger{color:var(--red2)}.stat-v.warning{color:var(--amber)}.stat-v.safe{color:var(--green)}
+.stat-l{font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.2rem}
+
+.cc{position:relative;width:100%;height:300px;margin:0.5rem 0}
+canvas{width:100%!important;height:100%!important}
+
+.sbar{display:flex;height:32px;border-radius:3px;overflow:hidden;margin:0.6rem 0;border:1px solid var(--border)}
+.sseg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.65rem;font-weight:500;color:var(--bg);transition:width 0.5s ease;min-width:0;overflow:hidden}
+.sleg{display:flex;gap:0.8rem;flex-wrap:wrap;margin-top:0.4rem}
+.sleg-i{display:flex;align-items:center;gap:0.3rem;font-size:0.65rem;color:var(--text2)}
+.sdot{width:7px;height:7px;border-radius:2px}
+
+.cascade-s{display:flex;align-items:center;padding:0.7rem 0.8rem;border-left:3px solid var(--border);margin-left:0.8rem;margin-bottom:0.4rem}
+.cascade-s.a-r{border-left-color:var(--red);background:var(--red-d);border-radius:0 4px 4px 0}
+.cascade-s.a-a{border-left-color:var(--amber);background:var(--amber-d);border-radius:0 4px 4px 0}
+.cascade-loss{font-family:var(--mono);font-size:1.2rem;font-weight:700;min-width:3.5rem}
+.cascade-d{margin-left:0.8rem;font-size:0.78rem;color:var(--text2)}
+.cascade-d strong{color:var(--text);font-weight:600}
+
+.qbox{text-align:center;padding:2.5rem 2rem;border:1px solid var(--border);border-radius:8px;background:linear-gradient(135deg,var(--bg2),var(--surface));max-width:680px;margin:2rem auto}
+.qtxt{font-family:var(--serif);font-size:1.35rem;color:var(--white);line-height:1.6;margin-bottom:0.8rem}
+.qsub{font-size:0.82rem;color:var(--text2);line-height:1.7}
+
+.prose{max-width:640px}.prose p{font-size:0.82rem;color:var(--text2);line-height:1.8;margin-bottom:0.7rem}.prose strong{color:var(--text)}
+
+.corr-g{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:3px;overflow:hidden;font-size:0.55rem}
+.corr-c{display:flex;align-items:center;justify-content:center;background:var(--surface);padding:0.25rem;font-family:var(--mono);color:var(--text3)}
+.corr-c.hdr{background:var(--bg3);font-weight:600;color:var(--text);font-family:var(--sans)}
+.corr-c.hi{background:rgba(196,64,64,0.2);color:var(--red2)}
+.corr-c.md{background:rgba(196,154,64,0.12);color:var(--amber)}
+.corr-c.dg{background:var(--bg3);color:var(--text3)}
+
+.sso{display:flex;gap:0;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.sso-o{padding:0.35rem 0.65rem;font-size:0.65rem;font-weight:500;color:var(--text3);cursor:pointer;background:var(--surface);border-right:1px solid var(--border);transition:all 0.2s}
+.sso-o:last-child{border-right:none}.sso-o:hover{color:var(--text)}.sso-o.active{background:var(--teal-d);color:var(--teal2)}
+
+.preset-card{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:0.7rem 0.8rem;cursor:pointer;transition:all 0.2s}
+.preset-card:hover{border-color:var(--teal)}
+.preset-card.active{border-color:var(--teal);background:var(--teal-d)}
+.preset-name{font-size:0.8rem;font-weight:600;color:var(--white);margin-bottom:0.2rem}
+.preset-desc{font-size:0.65rem;color:var(--text3);line-height:1.5}
+
+.substrate-bar{height:8px;border-radius:4px;background:var(--border);margin:0.4rem 0;overflow:hidden}
+.substrate-fill{height:100%;border-radius:4px;transition:width 0.5s}
+
+table.meth{width:100%;border-collapse:collapse;font-size:0.72rem}
+table.meth th{text-align:left;padding:0.5rem;color:var(--text2);border-bottom:1px solid var(--border);font-weight:600}
+table.meth td{padding:0.5rem;border-bottom:1px solid var(--border);color:var(--text)}
+table.meth td.mono{font-family:var(--mono);color:var(--teal2)}
+
+.sim-st{font-family:var(--mono);font-size:0.65rem;color:var(--text3);margin-left:0.8rem}
+
+@media(max-width:1000px){.g2,.g3,.g4,.gs{grid-template-columns:1fr}.main{padding:1rem}.header{padding:0.8rem 1rem}.tabs{padding:0 1rem}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-title">Systemic Risk Projection Model</div>
+    <div class="header-sub">10-Year Monte Carlo State-Transition Framework &middot; Structured Scenario Analysis</div>
+  </div>
+  <div class="header-right">
+    <span class="badge">5,000 Simulations</span>
+    <span class="badge">12 Vectors</span>
+    <span class="badge">v4.0</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="calibration">Calibration</div>
+  <div class="tab" data-tab="distribution">Terminal Distribution</div>
+  <div class="tab" data-tab="substrate">Substrate Health</div>
+  <div class="tab" data-tab="cascade">Institutional Cascade</div>
+  <div class="tab" data-tab="portfolio">Portfolio Outcomes</div>
+  <div class="tab" data-tab="question">The Question</div>
+  <div class="tab" data-tab="methodology">Methodology</div>
+</div>
+
+<div class="main">
+
+<!-- CALIBRATION -->
+<div class="panel active" id="panel-calibration">
+  <div class="stitle">Worldview Calibration</div>
+  <div class="ssub">This model is a structured scenario framework, not a predictive product. It makes beliefs about future disruption risks explicit, testable, and actionable. Adjust the vectors to reflect your assessment, or click a preset to explore a narrative.</div>
+
+  <div class="card" style="margin-bottom:1.2rem">
+    <div class="card-t">Scenario Presets</div>
+    <div class="g4" id="preset-grid"></div>
+  </div>
+
+  <div style="display:flex;gap:1.5rem;align-items:flex-start;margin-bottom:1.2rem;flex-wrap:wrap">
+    <div>
+      <div class="card-t" style="margin-bottom:0.3rem">Starting State (2026)</div>
+      <div class="sso">
+        <div class="sso-o" data-state="0">Stable</div>
+        <div class="sso-o active" data-state="1">Managed</div>
+        <div class="sso-o" data-state="2">Severe</div>
+        <div class="sso-o" data-state="3">Crisis</div>
+      </div>
+    </div>
+    <div>
+      <div class="card-t" style="margin-bottom:0.3rem">EROI Decline Rate</div>
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <input type="range" id="slider-eroi" min="0" max="100" value="50" style="width:180px">
+        <span class="sv" id="val-eroi">0.50</span>
+      </div>
+      <div class="sm">Background energy constraint. Higher = faster net energy decline over the decade.</div>
+    </div>
+  </div>
+
+  <div class="gs" id="sliders-container"></div>
+
+  <div style="margin-top:1.2rem;display:flex;gap:0.8rem;align-items:center">
+    <button class="btn-p btn" id="btn-run">Run 5,000 Simulations</button>
+    <button class="btn" id="btn-reroll">Re-roll (New Seed)</button>
+    <span class="sim-st" id="sim-status"></span>
+  </div>
+
+  <div class="g2" style="margin-top:1.2rem">
+    <div class="card">
+      <div class="card-t">Event Correlation Matrix</div>
+      <div style="font-size:0.65rem;color:var(--text3);margin-bottom:0.4rem">Pairwise amplification when correlated events co-occur.</div>
+      <div id="corr-matrix"></div>
+    </div>
+    <div class="card">
+      <div class="card-t">Quick Results</div>
+      <div class="g2" style="gap:0.5rem">
+        <div class="stat"><div class="stat-v" id="qs-sev">--</div><div class="stat-l">P(Severe+)</div></div>
+        <div class="stat"><div class="stat-v" id="qs-cri">--</div><div class="stat-l">P(Crisis+)</div></div>
+      </div>
+      <div class="card-t" style="margin-top:0.8rem">Substrate Health at Year 10</div>
+      <div class="substrate-bar"><div class="substrate-fill" id="qs-sub" style="width:100%;background:var(--green)"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text3)"><span>Degraded</span><span id="qs-sub-val">--</span><span>Healthy</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TERMINAL DISTRIBUTION -->
+<div class="panel" id="panel-distribution">
+  <div class="stitle">Terminal Distribution at Year 10</div>
+  <div class="ssub">Where do 5,000 simulated futures end up? The model does not tell you what to believe. It makes the consequences of your beliefs visible.</div>
+  <div class="g3" style="margin-bottom:1.2rem">
+    <div class="card stat"><div class="stat-v" id="stat-severe">--</div><div class="stat-l">P(Severe Disruption+)</div></div>
+    <div class="card stat"><div class="stat-v" id="stat-crisis">--</div><div class="stat-l">P(Systemic Crisis+)</div></div>
+    <div class="card stat"><div class="stat-v" id="stat-civil">--</div><div class="stat-l">P(Civilisational Stress)</div></div>
+  </div>
+  <div class="card"><div class="card-t">Year 10 State Distribution</div><div class="sbar" id="dist-bar"></div><div class="sleg" id="dist-legend"></div></div>
+  <div class="g2" style="margin-top:1.2rem">
+    <div class="card"><div class="card-t">Distribution Over Time (Stacked)</div><div class="cc"><canvas id="chart-timeline"></canvas></div></div>
+    <div class="card"><div class="card-t">Sample Paths (150 Simulations)</div><div class="cc"><canvas id="chart-paths"></canvas></div></div>
+  </div>
+</div>
+
+<!-- SUBSTRATE HEALTH -->
+<div class="panel" id="panel-substrate">
+  <div class="stitle">Substrate Health Index</div>
+  <div class="ssub">The institutional, ecological, and governance substrate beneath the financial system. This index tracks cumulative damage from disruption events and background EROI decline, offset by stabilising forces (energy transition, institutional formation). When substrates degrade, the financial claims that depend on them become fragile.</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-t">Median Substrate Health Over Time</div>
+      <div class="cc"><canvas id="chart-substrate"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-t">What the Substrate Carries</div>
+      <div class="prose">
+        <p>The substrate is the thing beneath the thing. It is the legal systems that enforce contracts, the energy systems that power logistics, the ecological systems that provide water and stable climate, the governance systems that maintain social order.</p>
+        <p><strong>Most investment models treat the substrate as a constant.</strong> It is not. When the substrate degrades, diversification within the financial system reveals itself as correlated exposure to a single condition: institutional continuity.</p>
+        <p>The Substrate Health Index aggregates damage from active disruption events, background EROI decline, and time spent in stressed states. It is offset by stabilising vectors: successful energy transition and institutional formation. When the index falls below 50, the institutional cascade becomes the central risk rather than a tail risk.</p>
+        <p>The index does not predict. It makes visible what is normally invisible until it fails.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CASCADE -->
+<div class="panel" id="panel-cascade">
+  <div class="stitle">Institutional Cascade Model</div>
+  <div class="ssub">Physical risk alone is survivable. The amplifier is sequential institutional failure. Each step makes the next more likely and more severe.</div>
+  <div class="g2">
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-t">Cascade Stages (Representative $100M Portfolio, 30 Years)</div>
+        <div class="cascade-s a-a"><div class="cascade-loss" style="color:var(--amber)">~22%</div><div class="cascade-d"><strong>Physical risk alone.</strong> Climate impacts with institutions functioning.</div></div>
+        <div class="cascade-s a-a"><div class="cascade-loss" style="color:var(--amber)">~33%</div><div class="cascade-d"><strong>Insurance retreat.</strong> Insurers withdraw. Uninsurable assets lose value. Risk socialises.</div></div>
+        <div class="cascade-s a-r"><div class="cascade-loss" style="color:var(--red)">~52%</div><div class="cascade-d"><strong>Municipal fiscal stress.</strong> Uninsured infrastructure degrades tax base. Services contract.</div></div>
+        <div class="cascade-s a-r"><div class="cascade-loss" style="color:var(--red)">~71%</div><div class="cascade-d"><strong>Sovereign contagion.</strong> Municipal stress aggregates to sovereign balance sheets. Credit reprices.</div></div>
+        <div class="cascade-s a-r"><div class="cascade-loss" style="color:var(--red2)">~86%</div><div class="cascade-d"><strong>Full cascade.</strong> Correlated credit repricing across asset classes. Diversification fails.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-t">The Amplifier</div>
+        <div class="prose">
+          <p>The gap between 22% and 86% is not additional physical risk. It is the cost of <strong>institutional entanglement</strong>.</p>
+          <p>Insulation repositions within the system. It does not reduce the probability of the cascade. Only <strong>substrate stabilisation</strong> addresses the source: investing in the institutional infrastructure that would prevent or absorb the cascade.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:1rem"><div class="card-t">Institutional Dependencies</div><div class="cc" style="height:260px"><canvas id="chart-cascade"></canvas></div></div>
+      <div class="card">
+        <div class="card-t">Simulation-Derived Cascade Probability</div>
+        <div class="prose"><p>Based on current simulation results, the probability that the world reaches Systemic Crisis or worse by Year 10:</p></div>
+        <div style="margin-top:0.5rem"><div class="stat-v danger" id="cascade-prob" style="font-size:1.3rem">--</div><div class="stat-l">P(Crisis+) from Simulation</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTFOLIO -->
+<div class="panel" id="panel-portfolio">
+  <div class="stitle">Portfolio Outcomes</div>
+  <div class="ssub">Three strategies tracked across all simulations. $100M starting capital. Returns are state-dependent with stochastic noise. Formation Capital receives a small bonus when substrate health is improving.</div>
+  <div class="g3" style="margin-bottom:1.2rem">
+    <div class="card">
+      <div class="card-t" style="color:var(--red)">Conventional Portfolio</div>
+      <div class="stat-v" id="p-cm" style="font-size:1.1rem">--</div><div class="stat-l">Median Year 10</div>
+      <div style="margin-top:0.4rem"><div class="stat-v danger" id="p-c10" style="font-size:0.9rem">--</div><div class="stat-l">10th Percentile (Worst Decile)</div></div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--amber)">Resilient Real Assets</div>
+      <div class="stat-v" id="p-rm" style="font-size:1.1rem">--</div><div class="stat-l">Median Year 10</div>
+      <div style="margin-top:0.4rem"><div class="stat-v warning" id="p-r10" style="font-size:0.9rem">--</div><div class="stat-l">10th Percentile</div></div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--teal)">Formation Capital</div>
+      <div class="stat-v safe" id="p-fm" style="font-size:1.1rem">--</div><div class="stat-l">Median Year 10</div>
+      <div style="margin-top:0.4rem"><div class="stat-v" id="p-f10" style="font-size:0.9rem">--</div><div class="stat-l">10th Percentile</div></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-t">Median Portfolio Trajectory</div><div class="cc"><canvas id="chart-trajectory"></canvas></div></div>
+    <div class="card"><div class="card-t">Year 10 Value Distribution</div><div class="cc"><canvas id="chart-portfolio"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:1.2rem">
+    <div class="card-t">Return Assumptions by World-State (Annual)</div>
+    <div style="overflow-x:auto">
+      <table class="meth">
+        <thead><tr><th>Strategy</th><th style="color:var(--green)">Stable</th><th style="color:var(--teal2)">Managed</th><th style="color:var(--amber)">Severe</th><th style="color:var(--red)">Crisis</th><th style="color:var(--red2)">Civ. Stress</th></tr></thead>
+        <tbody>
+          <tr><td>Conventional</td><td class="mono">+7%</td><td class="mono">+2%</td><td class="mono">-10%</td><td class="mono">-28%</td><td class="mono">-50%</td></tr>
+          <tr><td>Resilient Real Assets</td><td class="mono">+5%</td><td class="mono">+6%</td><td class="mono">+2%</td><td class="mono">-8%</td><td class="mono">-20%</td></tr>
+          <tr><td>Formation Capital</td><td class="mono">+4%</td><td class="mono">+8%</td><td class="mono">+10%</td><td class="mono">+3%</td><td class="mono">-8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- THE QUESTION -->
+<div class="panel" id="panel-question">
+  <div style="min-height:55vh;display:flex;flex-direction:column;justify-content:center">
+    <div class="qbox">
+      <div class="qtxt">At what settings do the sliders need to be<br>before you stop worrying?</div>
+      <div class="qsub">If you cannot find settings you believe in that bring the probability of Severe Disruption or worse below 20%, formation capital is the rational response.</div>
+      <div style="margin-top:1.2rem;display:flex;justify-content:center;gap:2rem">
+        <div><div class="stat-v" id="q-severe" style="font-size:2rem">--</div><div class="stat-l">P(Severe+) at Your Settings</div></div>
+      </div>
+      <div style="margin-top:1.2rem;font-size:0.78rem;color:var(--text3);line-height:1.7;max-width:480px;margin-left:auto;margin-right:auto">
+        In practice, achieving a sub-20% probability requires setting most threat probabilities well below observable trend lines. That position requires active disbelief in current data.
+      </div>
+    </div>
+    <div class="card" style="margin-top:1.5rem;max-width:680px;margin-left:auto;margin-right:auto">
+      <div class="prose" style="max-width:100%">
+        <p>This model makes beliefs testable. It does not make predictions. The base probabilities reflect observable 2026 trajectories and institutional research. They are starting points, not claims of certainty.</p>
+        <p>The model's purpose is to shift the burden of proof. Instead of arguing that the world is getting worse, it asks: <strong>show me the version of the next decade where you don't need to hedge.</strong> If you cannot construct that version from settings you believe in, the case for a different approach makes itself.</p>
+        <p>For those whose settings produce concern, the question becomes: where does capital go? The companion document, <strong>Worldview and Wealth Stewardship</strong>, walks through the upstream questions. The <strong>Perpetual Civilisational Treasury Protocol</strong> provides the operational architecture for deploying capital toward the institutional infrastructure this model shows is needed.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- METHODOLOGY -->
+<div class="panel" id="panel-methodology">
+  <div class="stitle">Methodology &amp; Sources</div>
+  <div class="ssub">This model is a structured scenario framework designed for interactive exploration. All parameters are transparent and adjustable. It is designed to be interrogated, not accepted on authority.</div>
+
+  <div class="card" style="margin-bottom:1.2rem">
+    <div class="card-t">Disruption Vector Calibration</div>
+    <div style="overflow-x:auto">
+      <table class="meth" id="meth-table">
+        <thead><tr><th>Vector</th><th>Base %</th><th>Peak</th><th>Mag.</th><th>Duration</th><th>Source &amp; Rationale</th></tr></thead>
+        <tbody id="meth-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-t">Key Design Decisions</div>
+      <div class="prose">
+        <p><strong>Starting state: Managed Disruption.</strong> Insurance markets are already retreating, AI labour displacement is measurable, democratic institutions are under stress in multiple major economies. Users who disagree can adjust.</p>
+        <p><strong>Nonlinear compounding.</strong> Three simultaneous disruptions produce more total pressure than one of equal combined magnitude. The function: Compounded = 1 - (1 - pressure)^(1 + eventCount * 0.3).</p>
+        <p><strong>Persistence differentiation.</strong> Acute shocks (pandemic, cyber) carry 2-year persistence. Structural shifts (insurance, democracy, AI) carry 8-10 years. This is the model's most consequential distinction.</p>
+        <p><strong>Asymmetric stabilisation.</strong> Stabilisation uses a 0.5 coefficient vs 0.7 for disruption. Complex systems are easier to break than to repair.</p>
+        <p><strong>EROI background constraint.</strong> Net energy decline applies gentle downward pressure on all transitions, increasing over the decade. This reflects the biophysical reality that declining surplus energy constrains institutional capacity.</p>
+        <p><strong>Recovery degradation.</strong> Time spent in stressed states (SD/SC/CS) progressively reduces recovery probability, creating a persistence trap.</p>
+        <p><strong>Substrate Health Index.</strong> An aggregate measure of institutional, ecological, and governance capacity. Damaged by active events and EROI decline. Restored by stabilising vectors. When it falls below 50, the institutional cascade becomes central rather than tail risk.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t">Limitations</div>
+      <div class="prose">
+        <p><strong>Events fire independently.</strong> In reality, conflict amplifies cyber risk, democratic collapse worsens sovereign debt. The correlation matrix partially addresses this but does not implement full causal chains.</p>
+        <p><strong>Static base transition matrix.</strong> Recovery capacity may degrade faster than the model implies. The recovery degradation function partially compensates.</p>
+        <p><strong>Portfolio returns are simplified.</strong> Real performance depends on geographic concentration, sector exposure, leverage, and liquidity. The three archetypes are illustrative.</p>
+        <p><strong>No geographic dimension.</strong> The model treats the world as one system. Substrate degradation is uneven across regions.</p>
+        <p><strong>No portfolio-to-system feedback.</strong> In reality, portfolio crashes amplify systemic stress through forced selling and credit contraction.</p>
+        <p><strong>Adaptation is not modelled.</strong> Policy response and human adaptive capacity could reduce impacts. The model assumes current trajectories, which is conservative by design.</p>
+        <p><strong>5,000 simulations produce sampling noise (±2-3 percentage points).</strong> Re-roll to confirm pattern stability.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="engine.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
