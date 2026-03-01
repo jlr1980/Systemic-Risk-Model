@@ -168,6 +168,7 @@ table.meth td.mono{font-family:var(--mono);color:var(--teal2)}
         <div class="sso-o" data-state="2">Severe</div>
         <div class="sso-o" data-state="3">Crisis</div>
       </div>
+      <div class="sm" style="margin-top:0.3rem;max-width:260px"><strong>What is this?</strong> Which of the five world-states the simulation starts in. <span id="start-interp" style="color:var(--teal2)">At "Managed": the world begins with measurable stress across multiple domains but institutions still operational. This is where observable 2026 data places us.</span></div>
     </div>
     <div>
       <div class="card-t" style="margin-bottom:0.3rem">EROI Decline Rate</div>
@@ -175,7 +176,15 @@ table.meth td.mono{font-family:var(--mono);color:var(--teal2)}
         <input type="range" id="slider-eroi" min="0" max="100" value="50" style="width:180px">
         <span class="sv" id="val-eroi">0.50</span>
       </div>
-      <div class="sm">Background energy constraint. Higher = faster net energy decline over the decade.</div>
+      <div class="sm" style="max-width:280px"><strong>What is this?</strong> The rate at which declining net energy constrains institutional response capacity over the decade. Higher values mean faster energy surplus decline. <span id="eroi-interp" style="color:var(--teal2)">At 0.50: moderate EROI decline adds ~1.1% cumulative downward pressure on transitions by Year 10. This reflects mainstream energy research estimates.</span></div>
+    </div>
+    <div>
+      <div class="card-t" style="margin-bottom:0.3rem">Compounding Intensity</div>
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <input type="range" id="slider-compounding" min="10" max="50" value="30" step="5" style="width:180px">
+        <span class="sv" id="val-compounding">0.30</span>
+      </div>
+      <div class="sm" style="max-width:280px"><strong>What is this?</strong> How much simultaneous crises amplify each other beyond their additive effect. Lower = crises are more independent. Higher = stronger cascading interaction. <span id="comp-interp" style="color:var(--teal2)">At 0.30: three simultaneous events produce ~47% more pressure than their sum. Calibrated against the 2008 financial crisis.</span></div>
     </div>
   </div>
 

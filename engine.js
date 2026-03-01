@@ -210,7 +210,8 @@ function runSimulations(params, nSims) {
       // Nonlinear compounding
       const ec = active.length;
       const capped = Math.min(rawP, 0.98);
-      const comp = ec > 0 || eroiPressure > 0 ? 1 - Math.pow(1 - capped, 1 + Math.max(ec, 1) * 0.3) : 0;
+      const compScale = params.compounding !== undefined ? params.compounding : 0.3;
+      const comp = ec > 0 || eroiPressure > 0 ? 1 - Math.pow(1 - capped, 1 + Math.max(ec, 1) * compScale) : 0;
 
       // Stabilization
       let stabilP = 0;

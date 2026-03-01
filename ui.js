@@ -39,10 +39,71 @@ for (const [key, p] of Object.entries(ENGINE.PRESETS)) {
   presetGrid.appendChild(el);
 }
 
+// ---- EVENT DESCRIPTIONS ----
+const EVENT_INFO = {
+  ai: {
+    what: 'Structural displacement of cognitive and knowledge work by AI systems. Affects professional, creative, and analytical roles previously considered automation-resistant.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability that significant AI labor displacement fires during 2027-2030. If it fires, it persists for 8 years (displaced jobs do not return). Disruption magnitude: 0.30.`
+  },
+  ins: {
+    what: 'Permanent withdrawal of private insurance from high-risk geographies. Shifts uninsured losses onto public balance sheets. No major insurer has ever returned to a market it abandoned.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of major insurance market failure during 2027-2031. If it fires, it persists for the full 10-year window. Disruption magnitude: 0.25.`
+  },
+  climate: {
+    what: 'Confirmed crossing of a climate tipping point (ice sheet collapse, Amazon dieback, permafrost release). Irreversible once triggered. Late-decade peak reflects the lag between emissions and observable system response.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of a confirmed tipping signal during 2031-2035. If confirmed, it persists permanently (10 years). Disruption magnitude: 0.35.`
+  },
+  conflict: {
+    what: 'Major conventional military conflict between or within significant states. Acute shock to trade, energy, and financial systems. Wars end and economies recover.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of major conventional conflict during 2026-2035. If it fires, it persists for 3 years (acute shock). Disruption magnitude: 0.22.`
+  },
+  nuclear: {
+    what: 'Any use of nuclear weapons in conflict, including tactical deployment. Highest magnitude event in the model. No recovery pathway within the simulation window.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of nuclear exchange during 2026-2035. If it fires, it persists for 10 years. Disruption magnitude: 0.55 (highest in model).`
+  },
+  pandemic: {
+    what: 'Major pandemic or biosecurity event comparable to or exceeding COVID-19. Acute shock with demonstrated societal adaptation capacity. Systems rebuild within 2 years.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of a major pandemic during 2026-2035. If it fires, it persists for 2 years (acute, rapid adaptation). Disruption magnitude: 0.20.`
+  },
+  debt: {
+    what: 'Sovereign debt crisis in one or more G7 economies. Restructuring compresses fiscal space for crisis response. Currently at historical debt-to-GDP levels.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of sovereign debt crisis during 2027-2032. If it fires, it persists for 4 years (restructuring period). Disruption magnitude: 0.28.`
+  },
+  food: {
+    what: 'Structural food system failure: pollinator collapse, soil degradation beyond recovery, or supply chain concentration failure. Not a single-season drought but a systemic shift.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of structural food system shock during 2029-2035. If it fires, it persists for 8 years (structural, not seasonal). Disruption magnitude: 0.30.`
+  },
+  cyber: {
+    what: 'Major cyberattack on critical infrastructure: power grids, financial systems, communications. Acute shock with relatively rapid system rebuild.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of major cyber/infrastructure attack during 2026-2032. If it fires, it persists for 2 years (systems rebuild). Disruption magnitude: 0.26.`
+  },
+  democracy: {
+    what: 'Continued erosion or collapse of democratic governance in major economies. Affects rule of law, contract enforcement, regulatory stability. 18 consecutive years of global decline already observed.',
+    interp: (v) => `At ${v}%: there is a ${Math.abs(v)}% cumulative probability of significant democratic collapse during 2026-2031. If it fires, it persists for 10 years (generational recovery). Disruption magnitude: 0.32.`
+  },
+  energy: {
+    what: 'Bidirectional: the trajectory of global energy transition. Negative values = clean energy succeeds (stabilizing). Positive values = transition fails or is disorderly (destabilizing).',
+    interp: (v) => {
+      if (v < 0) return `At ${v}%: there is a ${Math.abs(v)}% cumulative probability that clean energy transition succeeds significantly during 2028-2034. If it fires, it acts as a stabilizing force for 7 years, partially offsetting other disruptions.`;
+      if (v > 0) return `At ${v}%: there is a ${v}% cumulative probability that energy transition fails or is disorderly during 2028-2034. If it fires, it acts as a disruption for 7 years. Magnitude: 0.30.`;
+      return 'At 0%: energy transition is neutral. Neither stabilizing nor destabilizing.';
+    }
+  },
+  formation: {
+    what: 'Bidirectional: the rate of new institutional capacity building. Negative values = new institutions forming (stabilizing: community resilience, governance innovation, risk pooling). Positive values = institutional decay.',
+    interp: (v) => {
+      if (v < 0) return `At ${v}%: there is a ${Math.abs(v)}% cumulative probability that significant institutional formation occurs during 2029-2035. If it fires, it acts as a stabilizing force for 8 years.`;
+      if (v > 0) return `At ${v}%: there is a ${v}% cumulative probability of accelerating institutional decay during 2029-2035. If it fires, it acts as a disruption for 8 years. Magnitude: 0.25.`;
+      return 'At 0%: institutional capacity is neither forming nor decaying.';
+    }
+  }
+};
+
 // ---- BUILD SLIDERS ----
 const slidersContainer = document.getElementById('sliders-container');
 for (const evt of ENGINE.EVENTS) {
   const isBi = evt.bidirectional;
+  const info = EVENT_INFO[evt.id] || { what: evt.desc, interp: (v) => `${v}% probability over the peak window.` };
   const d = document.createElement('div');
   d.className = 'sg';
   d.innerHTML = `
@@ -50,16 +111,19 @@ for (const evt of ENGINE.EVENTS) {
       <span class="sn">${evt.name}${isBi ? ' \u2195' : ''}</span>
       <span class="sv${isBi && evt.base < 0 ? ' neg' : ''}" id="val-${evt.id}">${evt.base}%</span>
     </div>
-    <div class="sm">${evt.desc}</div>
+    <div class="sm"><strong>What is this?</strong> ${info.what}</div>
     <input type="range" id="slider-${evt.id}" min="${isBi ? -80 : 0}" max="${isBi ? 80 : 95}" value="${evt.base}" class="${isBi ? 'stab' : ''}">
+    <div class="sm" style="color:var(--teal2);margin-top:0.15rem" id="interp-${evt.id}">${typeof info.interp === 'function' ? info.interp(evt.base) : ''}</div>
   `;
   slidersContainer.appendChild(d);
   const sl = d.querySelector('input');
   const vl = d.querySelector('.sv');
+  const interpEl = d.querySelector(`#interp-${evt.id}`);
   sl.addEventListener('input', () => {
     const v = parseInt(sl.value);
     vl.textContent = v + '%';
     vl.classList.toggle('neg', isBi && v < 0);
+    if (typeof info.interp === 'function') interpEl.textContent = info.interp(v);
     clearPresetHighlight();
   });
 }
@@ -67,16 +131,58 @@ for (const evt of ENGINE.EVENTS) {
 // ---- EROI SLIDER ----
 const eroiSlider = document.getElementById('slider-eroi');
 const eroiVal = document.getElementById('val-eroi');
+const eroiInterp = document.getElementById('eroi-interp');
+function updateEroiInterp(v) {
+  const pct = (v * 0.15 * 100).toFixed(1);
+  const desc = v < 0.2 ? 'Minimal EROI pressure. Assumes abundant surplus energy throughout the decade.' :
+               v < 0.4 ? 'Low EROI pressure. Modest energy constraints.' :
+               v < 0.6 ? 'Moderate EROI decline. Reflects mainstream energy research estimates.' :
+               v < 0.8 ? 'Significant EROI decline. Net energy surplus noticeably constraining institutional capacity.' :
+               'Severe EROI decline. Consistent with rapid fossil fuel depletion without adequate replacement.';
+  eroiInterp.textContent = `At ${v.toFixed(2)}: adds ~${pct}% cumulative downward pressure on transitions by Year 10. ${desc}`;
+}
 eroiSlider.addEventListener('input', () => {
-  eroiVal.textContent = (parseInt(eroiSlider.value) / 100).toFixed(2);
+  const v = parseInt(eroiSlider.value) / 100;
+  eroiVal.textContent = v.toFixed(2);
+  updateEroiInterp(v);
+  clearPresetHighlight();
+});
+
+// ---- COMPOUNDING SLIDER ----
+const compSlider = document.getElementById('slider-compounding');
+const compVal = document.getElementById('val-compounding');
+const compInterp = document.getElementById('comp-interp');
+function updateCompInterp(v) {
+  // Calculate what 3 events at rawP=0.5 would produce
+  const comp3 = (1 - Math.pow(0.5, 1 + 3 * v)) ;
+  const additive = 0.5;
+  const amplification = ((comp3 / additive - 1) * 100).toFixed(0);
+  const desc = v <= 0.15 ? 'Conservative: crises are mostly independent. Appropriate if you believe institutional firewalls effectively contain cascades.' :
+               v <= 0.25 ? 'Moderate: meaningful interaction between simultaneous crises but limited cascade amplification.' :
+               v <= 0.35 ? 'Calibrated default: three simultaneous crises produce significant emergent damage. Based on 2008 financial crisis dynamics.' :
+               'Aggressive: strong cascade amplification. Appropriate if you believe institutional interconnection is deeper than conventional models assume.';
+  compInterp.textContent = `At ${v.toFixed(2)}: three simultaneous events produce ~${amplification}% more pressure than their sum. ${desc}`;
+}
+compSlider.addEventListener('input', () => {
+  const v = parseInt(compSlider.value) / 100;
+  compVal.textContent = v.toFixed(2);
+  updateCompInterp(v);
   clearPresetHighlight();
 });
 
 // ---- STARTING STATE ----
+const startInterp = document.getElementById('start-interp');
+const startDescs = {
+  0: 'At "Stable": the world begins with institutions functioning well and disruptions absorbed. Requires belief that 2026 conditions are better than observable data suggests.',
+  1: 'At "Managed": the world begins with measurable stress across multiple domains but institutions still operational. This is where observable 2026 data places us.',
+  2: 'At "Severe": the world begins already in significant disruption. Multiple crises active and institutional capacity strained. A pessimistic starting point.',
+  3: 'At "Crisis": the world begins in institutional failure. An extreme starting point that assumes 2026 conditions are already critical.'
+};
 document.querySelectorAll('.sso-o').forEach(o => {
   o.addEventListener('click', () => {
     document.querySelectorAll('.sso-o').forEach(x => x.classList.remove('active'));
     o.classList.add('active');
+    startInterp.textContent = startDescs[parseInt(o.dataset.state)] || '';
     clearPresetHighlight();
   });
 });
@@ -96,17 +202,28 @@ function applyPreset(key) {
   for (const evt of ENGINE.EVENTS) {
     const sl = document.getElementById('slider-' + evt.id);
     const vl = document.getElementById('val-' + evt.id);
+    const interpEl = document.getElementById('interp-' + evt.id);
     const v = p[evt.id] !== undefined ? p[evt.id] : evt.base;
     sl.value = v;
     vl.textContent = v + '%';
     vl.classList.toggle('neg', evt.bidirectional && v < 0);
+    const info = EVENT_INFO[evt.id];
+    if (info && typeof info.interp === 'function' && interpEl) interpEl.textContent = info.interp(v);
   }
   document.querySelectorAll('.sso-o').forEach(o => {
-    o.classList.toggle('active', parseInt(o.dataset.state) === (p.startState || 1));
+    const st = parseInt(o.dataset.state);
+    o.classList.toggle('active', st === (p.startState || 1));
   });
+  startInterp.textContent = startDescs[p.startState || 1] || '';
   const er = p.eroi !== undefined ? p.eroi : 0.5;
   eroiSlider.value = Math.round(er * 100);
   eroiVal.textContent = er.toFixed(2);
+  updateEroiInterp(er);
+  // Compounding stays at user setting unless preset specifies it
+  const comp = p.compounding !== undefined ? p.compounding : 0.3;
+  compSlider.value = Math.round(comp * 100);
+  compVal.textContent = comp.toFixed(2);
+  updateCompInterp(comp);
   runSim();
 }
 
@@ -124,6 +241,7 @@ function gatherParams() {
   const activeState = document.querySelector('.sso-o.active');
   params.startState = activeState ? parseInt(activeState.dataset.state) : 1;
   params.eroi = parseInt(eroiSlider.value) / 100;
+  params.compounding = parseInt(compSlider.value) / 100;
   return params;
 }
 
