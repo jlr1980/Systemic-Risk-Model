@@ -341,8 +341,8 @@ const cDef = {
   maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: {
-    x: { grid: { color: 'rgba(30,45,64,0.5)' }, ticks: { color: '#4d6070', font: { family: "'DM Sans'", size: 10 } } },
-    y: { grid: { color: 'rgba(30,45,64,0.5)' }, ticks: { color: '#4d6070', font: { family: "'JetBrains Mono'", size: 10 } } }
+    x: { grid: { color: 'rgba(0,0,0,0.08)' }, ticks: { color: '#5a6a78', font: { family: "'DM Sans'", size: 10 } } },
+    y: { grid: { color: 'rgba(0,0,0,0.08)' }, ticks: { color: '#5a6a78', font: { family: "'JetBrains Mono'", size: 10 } } }
   }
 };
 
@@ -429,7 +429,7 @@ function drawTrajectory() {
       { label: 'Formation Capital', data: r.medianPaths.form, borderColor: '#0d9da0', borderWidth: 2, pointRadius: 2, pointBackgroundColor: '#0d9da0', tension: 0.3, fill: false },
     ]},
     options: { ...cDef,
-      plugins: { ...cDef.plugins, legend: { display: true, labels: { color: '#7a8fa0', font: { family: "'DM Sans'", size: 10 }, filter: item => item.text && item.text.length > 0 } } },
+      plugins: { ...cDef.plugins, legend: { display: true, labels: { color: '#5a6a78', font: { family: "'DM Sans'", size: 10 }, filter: item => item.text && item.text.length > 0 } } },
       scales: { ...cDef.scales, y: { ...cDef.scales.y, ticks: { ...cDef.scales.y.ticks, callback: v => '$' + (v).toFixed(0) + 'M' } } }
     }
   });
@@ -451,7 +451,7 @@ function drawPortfolioDist() {
       { label: 'Formation', data: dF, backgroundColor: '#0d9da050', borderColor: '#0d9da0', borderWidth: 0.5 },
     ]},
     options: { ...cDef,
-      plugins: { ...cDef.plugins, legend: { display: true, labels: { color: '#7a8fa0', font: { family: "'DM Sans'", size: 10 } } } },
+      plugins: { ...cDef.plugins, legend: { display: true, labels: { color: '#5a6a78', font: { family: "'DM Sans'", size: 10 } } } },
       scales: { ...cDef.scales, x: { ...cDef.scales.x, ticks: { ...cDef.scales.x.ticks, maxTicksLimit: 10 } }, y: { ...cDef.scales.y, ticks: { ...cDef.scales.y.ticks, callback: v => v.toFixed(0) + '%' } } }
     }
   });
