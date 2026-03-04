@@ -85,7 +85,7 @@ const EVENT_INFO = {
     what: 'Bidirectional: the trajectory of global energy transition. Negative values = clean energy succeeds (stabilizing). Positive values = transition fails or is disorderly (destabilizing).',
     interp: (v) => {
       if (v < 0) return `At ${v}%: there is a ${Math.abs(v)}% cumulative probability that clean energy transition succeeds significantly during 2028-2034. If it fires, it acts as a stabilizing force for 7 years, partially offsetting other disruptions.`;
-      if (v > 0) return `At ${v}%: there is a ${v}% cumulative probability that energy transition fails or is disorderly during 2028-2034. If it fires, it acts as a disruption for 7 years. Magnitude: 0.30.`;
+      if (v > 0) return `At ${v}%: there is a ${v}% cumulative probability that energy supply is severely disrupted or transition fails during 2028-2034. If it fires, it acts as a disruption for 7 years. Magnitude: 0.30.`;
       return 'At 0%: energy transition is neutral. Neither stabilizing nor destabilizing.';
     }
   },

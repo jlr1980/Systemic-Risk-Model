@@ -56,6 +56,8 @@ const CORRELATIONS = [
   ['food','conflict', 1.3],
   ['nuclear','conflict',1.2],
   ['cyber','ins',     1.2],
+  ['energy','food',   1.4],
+  ['energy','debt',   1.3],
 ];
 
 // Base transition matrix (zero events, no EROI pressure)
@@ -108,10 +110,10 @@ const PRESETS = {
     desc: 'Nate Hagens\u2019 thesis: declining EROI, material constraints binding, energy transition struggling. The biophysical squeeze without acute crises.',
     ai:35, ins:55, climate:40, conflict:20, nuclear:5, pandemic:15, debt:45, food:40, cyber:20, democracy:30, energy:15, formation:-10, startState:1, eroi:0.8
   },
-  tindaletrap: {
-    label: 'The Tindale Trap',
-    desc: 'Current monetary framework producing long-run misallocation. Sovereign debt and democratic stress high, no catastrophic events. The slow structural contradiction.',
-    ai:45, ins:60, climate:25, conflict:15, nuclear:5, pandemic:15, debt:70, food:20, cyber:25, democracy:55, energy:-15, formation:5, startState:1, eroi:0.5
+  hormuz: {
+    label: 'Strait of Hormuz Closure',
+    desc: 'Single chokepoint failure cascading through energy, chemicals, metals, grids, semiconductors, food, and sovereign balance sheets. Demonstrates how concentrated supply chain fragility converts a regional disruption into a global systemic event.',
+    ai:45, ins:65, climate:25, conflict:40, nuclear:12, pandemic:15, debt:65, food:60, cyber:55, democracy:45, energy:30, formation:5, startState:1, eroi:0.7
   },
   convergence: {
     label: 'The Convergence',
