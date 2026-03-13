@@ -80,15 +80,21 @@ function updateUsuCallouts() {
   const sevBase = ((br.terminalStates[2] + br.terminalStates[3] + br.terminalStates[4]) / bn * 100);
   const sevGap = sevUsu - sevBase;
 
-  const medConvUsu = ENGINE.median(r.portfolios.conv) / 100 * 100 * USU_SCALE;
-  const medConvBase = ENGINE.median(br.portfolios.conv) / 100 * 100 * USU_SCALE;
-  const medFormUsu = ENGINE.median(r.portfolios.form) / 100 * 100 * USU_SCALE;
-  const medFormBase = ENGINE.median(br.portfolios.form) / 100 * 100 * USU_SCALE;
+  // Defensive sort: ensure portfolio arrays are sorted before percentile calculations
+  const convSorted = [...r.portfolios.conv].sort((a, b) => a - b);
+  const formSorted = [...r.portfolios.form].sort((a, b) => a - b);
+  const convSortedCT = [...br.portfolios.conv].sort((a, b) => a - b);
+  const formSortedCT = [...br.portfolios.form].sort((a, b) => a - b);
 
-  const p10ConvUsu = ENGINE.pctl(r.portfolios.conv, 10) / 100 * 100 * USU_SCALE;
-  const p10ConvBase = ENGINE.pctl(br.portfolios.conv, 10) / 100 * 100 * USU_SCALE;
-  const p10FormUsu = ENGINE.pctl(r.portfolios.form, 10) / 100 * 100 * USU_SCALE;
-  const p10FormBase = ENGINE.pctl(br.portfolios.form, 10) / 100 * 100 * USU_SCALE;
+  const medConvUsu = ENGINE.median(convSorted) * USU_SCALE;
+  const medConvBase = ENGINE.median(convSortedCT) * USU_SCALE;
+  const medFormUsu = ENGINE.median(formSorted) * USU_SCALE;
+  const medFormBase = ENGINE.median(formSortedCT) * USU_SCALE;
+
+  const p10ConvUsu = ENGINE.pctl(convSorted, 10) * USU_SCALE;
+  const p10ConvBase = ENGINE.pctl(convSortedCT, 10) * USU_SCALE;
+  const p10FormUsu = ENGINE.pctl(formSorted, 10) * USU_SCALE;
+  const p10FormBase = ENGINE.pctl(formSortedCT, 10) * USU_SCALE;
 
   const missionGap = USU_TARGET - medConvUsu;
 
