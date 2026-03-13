@@ -9,6 +9,7 @@ let results = null;
 let charts = {};
 let currentPreset = 'current';
 let chartsDrawn = false;
+let usuBaselineResults = null;
 
 // ---- SCROLL SPY ----
 const sections = document.querySelectorAll('section[id]');
@@ -37,6 +38,93 @@ for (const [key, p] of Object.entries(ENGINE.PRESETS)) {
   el.innerHTML = `<div class="preset-name">${p.label}</div><div class="preset-desc">${p.desc}</div>`;
   el.addEventListener('click', () => applyPreset(key));
   presetGrid.appendChild(el);
+}
+
+// ---- USU CALLOUTS ----
+const usuContext = document.createElement('div');
+usuContext.id = 'usu-context';
+usuContext.style.cssText = 'display:none;background:#FEF9C3;border-left:3px solid #D97706;padding:0.75rem 1rem;margin-top:0.75rem;border-radius:4px;font-size:0.78rem;font-style:italic;color:#92400E;line-height:1.5';
+usuContext.textContent = 'USU CONTEXT: $614.9M endowment. Annual payout commitment ~$24.6M (4% of pool). Required return: ~8.5% nominal. The land-grant mission \u2014 agriculture, water, natural resources research \u2014 is the most directly substrate-exposed institutional mandate in the model. Question: can this endowment preserve mission capacity across all three cascade scenarios?';
+presetGrid.parentNode.insertBefore(usuContext, presetGrid.nextSibling);
+
+const usuVariance = document.createElement('div');
+usuVariance.id = 'usu-variance';
+usuVariance.style.cssText = 'display:none;margin-top:0.75rem;gap:0.75rem';
+presetGrid.parentNode.insertBefore(usuVariance, usuContext.nextSibling);
+
+const USU_SCALE = 6.149;
+const USU_TARGET = 614.9 * Math.pow(1.085, 10);
+
+function updateUsuCallouts() {
+  const isUsu = currentPreset === 'usu';
+  usuContext.style.display = isUsu ? 'block' : 'none';
+  if (!isUsu || !results) {
+    usuVariance.style.display = 'none';
+    return;
+  }
+  // Run silent baseline with current trajectory preset
+  const cp = ENGINE.PRESETS.current;
+  const baseParams = {};
+  for (const evt of ENGINE.EVENTS) baseParams[evt.id] = cp[evt.id] !== undefined ? cp[evt.id] : evt.base;
+  baseParams.startState = cp.startState || 1;
+  baseParams.eroi = cp.eroi !== undefined ? cp.eroi : 0.5;
+  baseParams.compounding = cp.compounding !== undefined ? cp.compounding : 0.3;
+  usuBaselineResults = ENGINE.runSimulations(baseParams, 5000);
+
+  const r = results;
+  const br = usuBaselineResults;
+  const n = r.terminalStates.reduce((a, b) => a + b, 0);
+  const bn = br.terminalStates.reduce((a, b) => a + b, 0);
+
+  const sevUsu = ((r.terminalStates[2] + r.terminalStates[3] + r.terminalStates[4]) / n * 100);
+  const sevBase = ((br.terminalStates[2] + br.terminalStates[3] + br.terminalStates[4]) / bn * 100);
+  const sevGap = sevUsu - sevBase;
+
+  const medConvUsu = ENGINE.median(r.portfolios.conv) / 100 * 100 * USU_SCALE;
+  const medConvBase = ENGINE.median(br.portfolios.conv) / 100 * 100 * USU_SCALE;
+  const medFormUsu = ENGINE.median(r.portfolios.form) / 100 * 100 * USU_SCALE;
+  const medFormBase = ENGINE.median(br.portfolios.form) / 100 * 100 * USU_SCALE;
+
+  const p10ConvUsu = ENGINE.pctl(r.portfolios.conv, 10) / 100 * 100 * USU_SCALE;
+  const p10ConvBase = ENGINE.pctl(br.portfolios.conv, 10) / 100 * 100 * USU_SCALE;
+  const p10FormUsu = ENGINE.pctl(r.portfolios.form, 10) / 100 * 100 * USU_SCALE;
+  const p10FormBase = ENGINE.pctl(br.portfolios.form, 10) / 100 * 100 * USU_SCALE;
+
+  const missionGap = USU_TARGET - medConvUsu;
+
+  const sevGapLabel = sevGap > 0
+    ? `<span style="color:#DC2626">\u2191 ${sevGap.toFixed(1)}pp elevated</span>`
+    : `<span style="color:#16A34A">\u2193 ${Math.abs(sevGap).toFixed(1)}pp lower</span>`;
+
+  const medGapConv = medConvUsu - medConvBase;
+  const medGapForm = medFormUsu - medFormBase;
+  const p10GapConv = p10ConvUsu - p10ConvBase;
+  const p10GapForm = p10FormUsu - p10FormBase;
+
+  const fmtD = (v) => '$' + Math.round(Math.abs(v)) + 'M';
+  const gapLabel = (v) => v < 0
+    ? `<span style="color:#DC2626">\u2193 ${fmtD(v)}</span>`
+    : `<span style="color:#16A34A">\u2191 ${fmtD(v)}</span>`;
+
+  usuVariance.style.display = 'grid';
+  usuVariance.style.gridTemplateColumns = '1fr 1fr';
+  usuVariance.innerHTML = `
+    <div style="background:#EFF6FF;border-left:3px solid #3B82F6;padding:0.75rem 1rem;border-radius:4px;font-size:0.75rem;color:#1E3A5F;line-height:1.6">
+      <div style="font-weight:700;margin-bottom:0.4rem">vs Current Trajectory</div>
+      <div>P(Severe+): ${sevUsu.toFixed(1)}% vs ${sevBase.toFixed(1)}% ${sevGapLabel}</div>
+      <div style="margin-top:0.3rem"><strong>Median Year 10 (Conventional):</strong><br>USU: $${Math.round(medConvUsu)}M vs CT: $${Math.round(medConvBase)}M ${gapLabel(medGapConv)}</div>
+      <div style="margin-top:0.3rem"><strong>Median Year 10 (Formation):</strong><br>USU: $${Math.round(medFormUsu)}M vs CT: $${Math.round(medFormBase)}M ${gapLabel(medGapForm)}</div>
+      <div style="margin-top:0.3rem"><strong>Worst Decile (Conventional):</strong><br>USU: $${Math.round(p10ConvUsu)}M vs CT: $${Math.round(p10ConvBase)}M ${gapLabel(p10GapConv)}</div>
+      <div style="margin-top:0.3rem"><strong>Worst Decile (Formation):</strong><br>USU: $${Math.round(p10FormUsu)}M vs CT: $${Math.round(p10FormBase)}M ${gapLabel(p10GapForm)}</div>
+    </div>
+    <div style="background:#FEF9C3;border-left:3px solid #D97706;padding:0.75rem 1rem;border-radius:4px;font-size:0.75rem;color:#92400E;line-height:1.6">
+      <div style="font-weight:700;margin-bottom:0.4rem">vs 8.5% Required Return</div>
+      <div><strong>Target (8.5% x 10yr):</strong> $${Math.round(USU_TARGET)}M</div>
+      <div style="margin-top:0.3rem"><strong>Conventional median:</strong> $${Math.round(medConvUsu)}M</div>
+      <div style="margin-top:0.5rem;font-size:0.85rem;font-weight:700;color:#DC2626">Mission gap: $${Math.round(missionGap)}M</div>
+      <div style="margin-top:0.3rem;font-size:0.7rem;font-style:italic">This gap represents projected capacity shortfall against perpetual mission commitments under current allocation.</div>
+    </div>
+  `;
 }
 
 // ---- EVENT DESCRIPTIONS ----
@@ -224,12 +312,16 @@ function applyPreset(key) {
   compSlider.value = Math.round(comp * 100);
   compVal.textContent = comp.toFixed(2);
   updateCompInterp(comp);
+  usuContext.style.display = key === 'usu' ? 'block' : 'none';
+  if (key !== 'usu') usuVariance.style.display = 'none';
   runSim();
 }
 
 function clearPresetHighlight() {
   document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
   currentPreset = null;
+  usuContext.style.display = 'none';
+  usuVariance.style.display = 'none';
 }
 
 // ---- GATHER PARAMS ----
@@ -313,6 +405,7 @@ function updateAll() {
   document.getElementById('p-f10').textContent = '$' + fmt(ENGINE.pctl(r.portfolios.form, 10)) + 'M';
 
   drawCharts();
+  updateUsuCallouts();
 }
 
 function setStatColor(id, text, val) {

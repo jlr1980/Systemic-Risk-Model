@@ -125,6 +125,12 @@ const PRESETS = {
     desc: 'Multiple systems already failing. Most events at high probability. Represents the view that 2026 conditions are worse than commonly acknowledged.',
     ai:75, ins:85, climate:50, conflict:45, nuclear:15, pandemic:35, debt:55, food:45, cyber:50, democracy:60, energy:20, formation:5, startState:2, eroi:0.8
   },
+  usu: {
+    label: 'USU Continuity',
+    desc: 'Utah State University endowment stress test. $614.9M endowment (FY2024). Required nominal return ~8.5% (4% payout + 1.5% admin + ~3% CPI). Land-grant mission creates direct exposure to agriculture, water, and infrastructure substrate degradation. Models whether USU can fulfill its perpetual mission commitments across cascade scenarios.',
+    startState:1, eroi:0.55, compounding:0.35,
+    ai:30, ins:55, climate:60, conflict:25, nuclear:8, pandemic:20, debt:50, food:65, cyber:35, democracy:40, energy:35, formation:10
+  },
 };
 
 // ============================================================
